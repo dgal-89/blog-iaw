@@ -1,0 +1,27 @@
+services:
+  jekyll:
+    image: ruby:3.3-bookworm
+    working_dir: /proyecto
+    user: "${JEKYLL_UID:-1000}:${JEKYLL_GID:-1000}"
+    environment:
+      BUNDLE_USER_HOME: /tmp/jekyll-bundler
+    volumes:
+      - .:/proyecto
+      - gemas:/usr/local/bundle
+    ports:
+      - "127.0.0.1:4000:4000"
+      - "127.0.0.1:35729:35729"
+    command:
+      - sh
+      - -ec
+      - |
+        if [ ! -f docs/Gemfile ]; then
+          gem install jekyll --version 3.10.0 --no-document
+          jekyll _3.10.0_ new docs --skip-bundle
+        fi
+        cd docs
+        bundle check || bundle install
+        exec bundle exec jekyll serve --host 0.0.0.0 --port 4000 --watch --force_polling --livereload --livereload-port 35729
+
+volumes:
+  gemas:
